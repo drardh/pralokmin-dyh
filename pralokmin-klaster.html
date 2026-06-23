@@ -18,7 +18,6 @@
     </div>
   </header>
 
-  <!-- Navigasi hanya Home dan Pralokmin Klaster -->
   <nav class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
     <div class="container mx-auto px-4">
       <ul class="flex flex-wrap items-center gap-1 py-2 text-sm font-medium text-gray-700">
@@ -41,6 +40,14 @@
             <i class="fas fa-sync-alt"></i> Tampilkan
           </button>
         </div>
+      </div>
+
+      <!-- Tombol Download ZIP -->
+      <div class="flex flex-wrap items-center gap-4 mb-4">
+        <button id="downloadZipBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition flex items-center gap-2">
+          <i class="fas fa-file-archive"></i> Download Semua File (ZIP)
+        </button>
+        <span id="zipStatus" class="text-sm text-gray-500"></span>
       </div>
 
       <div class="overflow-x-auto">
@@ -69,6 +76,32 @@
     </div>
   </main>
 
+  <!-- Modal Detail File -->
+  <div id="fileModal" class="fixed inset-0 z-50 hidden bg-black/50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 relative">
+      <button id="closeModalBtn" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+      <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+        <i class="fas fa-file-pdf text-red-500"></i> Detail File
+      </h3>
+      <div id="fileDetailContent">
+        <!-- Diisi oleh JavaScript -->
+      </div>
+      <div class="mt-4 flex flex-wrap gap-2">
+        <button id="editFileBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition flex items-center gap-1">
+          <i class="fas fa-edit"></i> Upload Ulang
+        </button>
+        <button id="deleteFileBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm transition flex items-center gap-1">
+          <i class="fas fa-trash"></i> Hapus
+        </button>
+        <button id="downloadFileBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition flex items-center gap-1">
+          <i class="fas fa-download"></i> Download ZIP
+        </button>
+      </div>
+    </div>
+  </div>
+
   <footer class="bg-white border-t border-gray-200 mt-6">
     <div class="container mx-auto px-4 py-4 text-center text-sm text-gray-500">
       &copy; 2026 Puskemsas Dayeuhluhur II - Digitalisasi
@@ -80,53 +113,71 @@
       const monthPicker = document.getElementById('monthPicker');
       const refreshBtn = document.getElementById('refreshBtn');
       const tbody = document.getElementById('statusTableBody');
+      const downloadBtn = document.getElementById('downloadZipBtn');
+      const zipStatus = document.getElementById('zipStatus');
 
       const now = new Date();
       const defaultMonth = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
       monthPicker.value = defaultMonth;
 
-      function renderTable(month) {
-        const storageKey = 'pralokmin_uploads';
-        const data = JSON.parse(localStorage.getItem(storageKey) || '{}');
-        const monthData = data[month] || {};
+      const API_BASE = 'http://192.168.1.28:3000';
 
-        const klasterList = ['1','2','3','4','5'];
-        let html = '';
-        klasterList.forEach(kl => {
-          const klData = monthData[kl] || { undangan: false, notulen: false, lampiran: false };
-          const allUploaded = klData.undangan && klData.notulen && klData.lampiran;
-          const statusColor = allUploaded ? 'bg-green-500' : 'bg-red-500';
-          const statusText = allUploaded ? 'Lengkap' : 'Belum lengkap';
+      // ---------- RENDER TABEL ----------
+      async function renderTable(month) {
+        try {
+          const response = await fetch(`${API_BASE}/api/status/${month}`);
+          if (!response.ok) throw new Error('Gagal ambil status');
+          const data = await response.json();
 
-          let missingDocs = [];
-          if (!klData.undangan) missingDocs.push('Undangan');
-          if (!klData.notulen) missingDocs.push('Notulen');
-          if (!klData.lampiran) missingDocs.push('Lampiran');
-          const missingDetail = missingDocs.length > 0 ? 'Belum: ' + missingDocs.join(', ') : '';
+          const klasterList = ['1','2','3','4','5'];
+          let html = '';
+          klasterList.forEach(kl => {
+            const klData = data[kl] || { undangan: false, notulen: false, lampiran: false };
+            const allUploaded = klData.undangan && klData.notulen && klData.lampiran;
+            const statusColor = allUploaded ? 'bg-green-500' : 'bg-red-500';
+            const statusText = allUploaded ? 'Lengkap' : 'Belum lengkap';
 
-          html += `
-            <tr>
-              <td class="px-4 py-3 whitespace-nowrap font-medium text-gray-900">Klaster ${kl}</td>
-              <td class="px-4 py-3">
-                <div class="flex flex-col">
-                  <span class="inline-flex items-center gap-1">
-                    <span class="inline-block w-3 h-3 rounded-full ${statusColor}"></span>
-                    ${statusText}
-                  </span>
-                  ${!allUploaded ? `<span class="text-xs text-gray-500 mt-1">${missingDetail}</span>` : ''}
-                </div>
-              </td>
-              <td class="px-4 py-3 whitespace-nowrap">
-                <a href="pralokmin.html?klaster=${kl}&month=${month}" class="text-blue-600 hover:underline text-sm">
-                  <i class="fas fa-edit"></i> Upload
-                </a>
-              </td>
-            </tr>
-          `;
-        });
-        tbody.innerHTML = html;
+            let missingDocs = [];
+            if (!klData.undangan) missingDocs.push('Undangan');
+            if (!klData.notulen) missingDocs.push('Notulen');
+            if (!klData.lampiran) missingDocs.push('Lampiran');
+            const missingDetail = missingDocs.length > 0 ? 'Belum: ' + missingDocs.join(', ') : '';
+
+            html += `
+              <tr>
+                <td class="px-4 py-3 whitespace-nowrap font-medium text-gray-900">Klaster ${kl}</td>
+                <td class="px-4 py-3">
+                  <div class="flex flex-col">
+                    <span class="inline-flex items-center gap-1">
+                      <span class="inline-block w-3 h-3 rounded-full ${statusColor}"></span>
+                      ${statusText}
+                    </span>
+                    ${!allUploaded ? `<span class="text-xs text-gray-500 mt-1">${missingDetail}</span>` : ''}
+                  </div>
+                </td>
+                <td class="px-4 py-3 whitespace-nowrap">
+                  <div class="flex flex-wrap gap-1">
+                    <button class="detail-btn text-blue-600 hover:text-blue-800 text-sm px-2 py-1 border rounded hover:bg-blue-50" data-bulan="${month}" data-klaster="${kl}">
+                      <i class="fas fa-eye"></i> Lihat
+                    </button>
+                    <a href="pralokmin.html?klaster=${kl}&month=${month}" class="text-green-600 hover:text-green-800 text-sm px-2 py-1 border rounded hover:bg-green-50 inline-block">
+                      <i class="fas fa-edit"></i> Edit
+                    </a>
+                    <button class="delete-all-btn text-red-600 hover:text-red-800 text-sm px-2 py-1 border rounded hover:bg-red-50" data-bulan="${month}" data-klaster="${kl}">
+                      <i class="fas fa-trash"></i> Hapus Semua
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          });
+          tbody.innerHTML = html;
+        } catch (err) {
+          alert('Gagal memuat status: ' + err.message);
+        }
       }
 
+      // ---------- REFRESH ----------
       function refresh() {
         const month = monthPicker.value;
         if (!month) {
@@ -136,11 +187,169 @@
         renderTable(month);
       }
 
+      // ---------- DOWNLOAD ZIP SEMUA KLASTER ----------
+      async function downloadZipAll() {
+        const month = monthPicker.value;
+        if (!month) {
+          alert('Pilih bulan terlebih dahulu.');
+          return;
+        }
+        zipStatus.textContent = '⏳ Menyiapkan ZIP...';
+        zipStatus.className = 'text-sm text-blue-500';
+        try {
+          const response = await fetch(`${API_BASE}/api/download/${month}`);
+          if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error || 'Gagal download');
+          }
+          const blob = await response.blob();
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = `Pralokmin_${month}.zip`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(link.href);
+          zipStatus.textContent = '✅ ZIP berhasil diunduh.';
+          zipStatus.className = 'text-sm text-green-500';
+        } catch (err) {
+          zipStatus.textContent = '❌ ' + err.message;
+          zipStatus.className = 'text-sm text-red-500';
+        }
+      }
+
+      // ---------- MODAL FUNCTIONS ----------
+      async function showFileDetail(bulan, klaster) {
+        try {
+          const response = await fetch(`${API_BASE}/api/files/${bulan}/${klaster}`);
+          if (!response.ok) throw new Error('Gagal ambil detail');
+          const files = await response.json();
+          
+          const content = document.getElementById('fileDetailContent');
+          if (files.length === 0) {
+            content.innerHTML = '<p class="text-gray-500">Belum ada file diupload.</p>';
+            document.getElementById('editFileBtn').style.display = 'none';
+            document.getElementById('deleteFileBtn').style.display = 'none';
+            document.getElementById('downloadFileBtn').style.display = 'none';
+          } else {
+            let html = '<ul class="space-y-2">';
+            files.forEach(f => {
+              const jenisLabel = { undangan: 'Undangan', notulen: 'Notulen', lampiran: 'Lampiran' }[f.jenis] || f.jenis;
+              const sizeKB = (f.ukuran / 1024).toFixed(1);
+              const date = new Date(f.diupload_pada).toLocaleString('id-ID');
+              html += `
+                <li class="border-b pb-2">
+                  <span class="font-medium">${jenisLabel}</span><br>
+                  <span class="text-sm text-gray-600">Nama: ${f.nama_file}</span><br>
+                  <span class="text-sm text-gray-600">Ukuran: ${sizeKB} KB</span><br>
+                  <span class="text-sm text-gray-600">Upload: ${date}</span>
+                </li>
+              `;
+            });
+            html += '</ul>';
+            content.innerHTML = html;
+            document.getElementById('editFileBtn').style.display = 'inline-flex';
+            document.getElementById('deleteFileBtn').style.display = 'inline-flex';
+            document.getElementById('downloadFileBtn').style.display = 'inline-flex';
+          }
+
+          document.getElementById('editFileBtn').dataset.bulan = bulan;
+          document.getElementById('editFileBtn').dataset.klaster = klaster;
+          document.getElementById('deleteFileBtn').dataset.bulan = bulan;
+          document.getElementById('deleteFileBtn').dataset.klaster = klaster;
+          document.getElementById('downloadFileBtn').dataset.bulan = bulan;
+          document.getElementById('downloadFileBtn').dataset.klaster = klaster;
+          document.getElementById('fileModal').classList.remove('hidden');
+        } catch (err) {
+          alert('Gagal memuat detail: ' + err.message);
+        }
+      }
+
+      async function deleteAllFiles(bulan, klaster) {
+        try {
+          const response = await fetch(`${API_BASE}/api/files/${bulan}/${klaster}`);
+          if (!response.ok) throw new Error('Gagal ambil daftar file');
+          const files = await response.json();
+          for (const f of files) {
+            const delResp = await fetch(`${API_BASE}/api/file/${bulan}/${klaster}/${f.jenis}`, { method: 'DELETE' });
+            if (!delResp.ok) {
+              console.error('Gagal hapus file', f.jenis);
+            }
+          }
+          alert('Semua file berhasil dihapus.');
+        } catch (err) {
+          alert('Gagal menghapus: ' + err.message);
+        }
+      }
+
+      // ---------- EVENT LISTENERS ----------
       refreshBtn.addEventListener('click', refresh);
       monthPicker.addEventListener('change', refresh);
+      downloadBtn.addEventListener('click', downloadZipAll);
 
+      // Event delegation untuk tombol aksi di tabel
+      document.addEventListener('click', async function(e) {
+        // Tombol Lihat
+        const detailBtn = e.target.closest('.detail-btn');
+        if (detailBtn) {
+          const bulan = detailBtn.dataset.bulan;
+          const klaster = detailBtn.dataset.klaster;
+          await showFileDetail(bulan, klaster);
+        }
+
+        // Tombol Hapus Semua
+        const deleteAllBtn = e.target.closest('.delete-all-btn');
+        if (deleteAllBtn) {
+          const bulan = deleteAllBtn.dataset.bulan;
+          const klaster = deleteAllBtn.dataset.klaster;
+          if (confirm(`Yakin ingin menghapus semua file untuk Klaster ${klaster} bulan ${bulan}?`)) {
+            await deleteAllFiles(bulan, klaster);
+            refresh();
+          }
+        }
+      });
+
+      // Modal controls
+      document.getElementById('closeModalBtn').addEventListener('click', () => {
+        document.getElementById('fileModal').classList.add('hidden');
+      });
+      document.getElementById('fileModal').addEventListener('click', function(e) {
+        if (e.target === this) this.classList.add('hidden');
+      });
+
+      // Edit -> redirect ke halaman upload
+      document.getElementById('editFileBtn').addEventListener('click', function() {
+        const bulan = this.dataset.bulan;
+        const klaster = this.dataset.klaster;
+        window.location.href = `pralokmin.html?klaster=${klaster}&month=${bulan}`;
+      });
+
+      // Hapus semua via modal
+      document.getElementById('deleteFileBtn').addEventListener('click', async function() {
+        const bulan = this.dataset.bulan;
+        const klaster = this.dataset.klaster;
+        if (!confirm(`Yakin ingin menghapus semua file untuk Klaster ${klaster} bulan ${bulan}?`)) return;
+        await deleteAllFiles(bulan, klaster);
+        document.getElementById('fileModal').classList.add('hidden');
+        refresh();
+      });
+
+      // Download ZIP per klaster
+      document.getElementById('downloadFileBtn').addEventListener('click', function() {
+        const bulan = this.dataset.bulan;
+        const klaster = this.dataset.klaster;
+        const link = document.createElement('a');
+        link.href = `${API_BASE}/api/download-klaster/${bulan}/${klaster}`;
+        link.download = `Pralokmin_Klaster${klaster}_${bulan}.zip`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+
+      // Render awal
       renderTable(defaultMonth);
 
+      // Jika ada parameter URL, set bulan dan refresh
       const urlParams = new URLSearchParams(window.location.search);
       const monthParam = urlParams.get('month');
       if (monthParam) {
