@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dokumen Pralokmin</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+  <div class="w-full max-w-2xl bg-white rounded-xl shadow-lg p-6 md:p-8">
+    <!-- Judul -->
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+      <i class="fas fa-file-alt text-blue-600"></i>
+      Dokumen Pralokmin
+    </h1>
+
+    <!-- Form -->
+    <form id="pralokminForm" class="space-y-6" novalidate>
+
+      <!-- Input Waktu (Bulan & Tahun) -->
+      <div>
+        <label for="bulanTahun" class="block text-sm font-medium text-gray-700 mb-1">
+          <i class="far fa-calendar-alt mr-1"></i> Waktu (Bulan & Tahun) <span class="text-red-500">*</span>
+        </label>
+        <input type="month" id="bulanTahun" name="bulanTahun" required
+               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" />
+        <p class="text-xs text-gray-400 mt-1">Format: Bulan dan Tahun (misal: Januari 2025)</p>
+      </div>
+
+      <!-- Klaster (dropdown) -->
+      <div>
+        <label for="klasterSelect" class="block text-sm font-medium text-gray-700 mb-1">
+          <i class="fas fa-layer-group mr-1"></i> Klaster <span class="text-red-500">*</span>
+        </label>
+        <select id="klasterSelect" name="klaster" required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-white">
+          <option value="">-- Pilih Klaster --</option>
+          <option value="Klaster 1">Klaster 1</option>
+          <option value="Klaster 2">Klaster 2</option>
+          <option value="Klaster 3">Klaster 3</option>
+          <option value="Klaster 4">Klaster 4</option>
+          <option value="Klaster 5">Klaster 5</option>
+        </select>
+        <div id="klasterError" class="text-sm text-red-600 mt-2 hidden"></div>
+      </div>
+
+      <!-- Upload Dokumen 1: File Undangan -->
+      <div class="upload-wrapper">
+        <label for="fileUndangan" class="block text-sm font-medium text-gray-700 mb-1">
+          <i class="fas fa-envelope mr-1"></i> File Undangan <span class="text-red-500">*</span>
+        </label>
+        <div class="relative border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-blue-400 transition text-center">
+          <input type="file" id="fileUndangan" name="fileUndangan" accept=".pdf"
+                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+          <div class="flex flex-col items-center justify-center pointer-events-none">
+            <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-1"></i>
+            <p class="text-gray-600 font-medium text-sm">Klik atau seret file PDF</p>
+            <p class="text-xs text-gray-400">Maksimal 1 MB</p>
+          </div>
+        </div>
+        <div id="errorUndangan" class="text-sm text-red-600 mt-2 hidden"></div>
+        <div id="infoUndangan" class="text-sm text-green-600 mt-2 hidden"></div>
+      </div>
+
+      <!-- Upload Dokumen 2: Notulen -->
+      <div class="upload-wrapper">
+        <label for="fileNotulen" class="block text-sm font-medium text-gray-700 mb-1">
+          <i class="fas fa-pen mr-1"></i> Notulen <span class="text-red-500">*</span>
+        </label>
+        <div class="relative border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-blue-400 transition text-center">
+          <input type="file" id="fileNotulen" name="fileNotulen" accept=".pdf"
+                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+          <div class="flex flex-col items-center justify-center pointer-events-none">
+            <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-1"></i>
+            <p class="text-gray-600 font-medium text-sm">Klik atau seret file PDF</p>
+            <p class="text-xs text-gray-400">Maksimal 1 MB</p>
+          </div>
+        </div>
+        <div id="errorNotulen" class="text-sm text-red-600 mt-2 hidden"></div>
+        <div id="infoNotulen" class="text-sm text-green-600 mt-2 hidden"></div>
+      </div>
+
+      <!-- Upload Dokumen 3: Lampiran -->
+      <div class="upload-wrapper">
+        <label for="fileLampiran" class="block text-sm font-medium text-gray-700 mb-1">
+          <i class="fas fa-paperclip mr-1"></i> Lampiran <span class="text-red-500">*</span>
+        </label>
+        <div class="relative border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-blue-400 transition text-center">
+          <input type="file" id="fileLampiran" name="fileLampiran" accept=".pdf"
+                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+          <div class="flex flex-col items-center justify-center pointer-events-none">
+            <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-1"></i>
+            <p class="text-gray-600 font-medium text-sm">Klik atau seret file PDF</p>
+            <p class="text-xs text-gray-400">Maksimal 1 MB</p>
+          </div>
+        </div>
+        <div id="errorLampiran" class="text-sm text-red-600 mt-2 hidden"></div>
+        <div id="infoLampiran" class="text-sm text-green-600 mt-2 hidden"></div>
+      </div>
+
+      <!-- Tombol Submit -->
+      <div class="flex justify-end pt-2">
+        <button type="submit"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition flex items-center gap-2 shadow-sm">
+          <i class="fas fa-paper-plane"></i> Simpan
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+  <script>
+    (function() {
+      const form = document.getElementById('pralokminForm');
+      const bulanTahunInput = document.getElementById('bulanTahun');
+      const klasterSelect = document.getElementById('klasterSelect');
+      const klasterError = document.getElementById('klasterError');
+
+      // Daftar upload
+      const uploads = [
+        { id: 'fileUndangan', errorId: 'errorUndangan', infoId: 'infoUndangan', label: 'Undangan' },
+        { id: 'fileNotulen', errorId: 'errorNotulen', infoId: 'infoNotulen', label: 'Notulen' },
+        { id: 'fileLampiran', errorId: 'errorLampiran', infoId: 'infoLampiran', label: 'Lampiran' }
+      ];
+
+      // Fungsi validasi file
+      function validateFile(fileInput, errorEl, infoEl, label) {
+        const file = fileInput.files[0];
+        errorEl.classList.add('hidden');
+        infoEl.classList.add('hidden');
+        errorEl.textContent = '';
+        infoEl.textContent = '';
+
+        if (!file) return true;
+
+        const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+        if (!isPdf) {
+          errorEl.textContent = '❌ Hanya file PDF yang diperbolehkan.';
+          errorEl.classList.remove('hidden');
+          fileInput.value = '';
+          return false;
+        }
+
+        const maxSize = 1 * 1024 * 1024;
+        if (file.size > maxSize) {
+          errorEl.textContent = '❌ Ukuran file melebihi 1 MB.';
+          errorEl.classList.remove('hidden');
+          fileInput.value = '';
+          return false;
+        }
+
+        infoEl.textContent = `✅ File "${file.name}" (${(file.size / 1024).toFixed(1)} KB) siap.`;
+        infoEl.classList.remove('hidden');
+        return true;
+      }
+
+      // Event listener untuk upload
+      uploads.forEach(u => {
+        const input = document.getElementById(u.id);
+        const errorEl = document.getElementById(u.errorId);
+        const infoEl = document.getElementById(u.infoId);
+        input.addEventListener('change', function() {
+          validateFile(this, errorEl, infoEl, u.label);
+        });
+      });
+
+      // Submit
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // Validasi bulan-tahun
+        if (!bulanTahunInput.value) {
+          alert('Mohon pilih Bulan dan Tahun.');
+          bulanTahunInput.focus();
+          return;
+        }
+
+        // Validasi Klaster (dropdown harus dipilih)
+        klasterError.classList.add('hidden');
+        if (!klasterSelect.value) {
+          klasterError.textContent = '❌ Silakan pilih Klaster.';
+          klasterError.classList.remove('hidden');
+          klasterSelect.focus();
+          return;
+        }
+
+        // Validasi file
+        let allValid = true;
+        let firstInvalid = null;
+        uploads.forEach(u => {
+          const input = document.getElementById(u.id);
+          const errorEl = document.getElementById(u.errorId);
+          const infoEl = document.getElementById(u.infoId);
+          const isValid = validateFile(input, errorEl, infoEl, u.label);
+          if (!isValid) {
+            allValid = false;
+            if (!firstInvalid) firstInvalid = input;
+          }
+        });
+
+        // Cek apakah semua file terisi
+        uploads.forEach(u => {
+          const input = document.getElementById(u.id);
+          if (!input.files || input.files.length === 0) {
+            allValid = false;
+            const errorEl = document.getElementById(u.errorId);
+            errorEl.textContent = '❌ File wajib diunggah.';
+            errorEl.classList.remove('hidden');
+            if (!firstInvalid) firstInvalid = input;
+          }
+        });
+
+        if (!allValid) {
+          alert('Mohon lengkapi semua upload dokumen dengan file PDF (maks. 1 MB).');
+          if (firstInvalid) firstInvalid.focus();
+          return;
+        }
+
+        // Jika semua valid, tampilkan data
+        const undangan = document.getElementById('fileUndangan').files[0];
+        const notulen = document.getElementById('fileNotulen').files[0];
+        const lampiran = document.getElementById('fileLampiran').files[0];
+        const klasterValue = klasterSelect.value;
+
+        alert(`✅ Data berhasil disimpan!\n\nBulan-Tahun: ${bulanTahunInput.value}\nKlaster: ${klasterValue}\n\nFile Undangan: ${undangan.name}\nNotulen: ${notulen.name}\nLampiran: ${lampiran.name}`);
+        // Kirim ke server jika diperlukan
+      });
+
+      // Set default bulan-tahun
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      bulanTahunInput.value = `${year}-${month}`;
+    })();
+  </script>
+</body>
+</html>
